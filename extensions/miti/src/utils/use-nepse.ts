@@ -3678,7 +3678,23 @@ export function useNepseStocks() {
 
   const data = useMemo(() => {
     const rawData = marketData?.stocks;
-    if (!rawData) return STOCK_LIST;
+    if (!rawData) {
+      return STOCK_LIST.map((stock) => ({
+        ...stock,
+        ltp: "-",
+        pointChange: "-",
+        percentageChange: "-",
+        high: "-",
+        low: "-",
+        open: "-",
+        qty: "-",
+        isFavorite: favorites.includes(stock.symbol),
+      })).sort((a, b) => {
+        if (a.isFavorite && !b.isFavorite) return -1;
+        if (!a.isFavorite && b.isFavorite) return 1;
+        return 0;
+      });
+    }
 
     return STOCK_LIST.map((stock) => {
       const live = (
@@ -3690,18 +3706,25 @@ export function useNepseStocks() {
       if (live) {
         return {
           ...stock,
-          ltp: live.ltp || stock.ltp,
-          pointChange: live.pointChange || stock.pointChange,
-          percentageChange: live.percentageChange || stock.percentageChange,
-          high: live.high || stock.high,
-          low: live.low || stock.low,
-          open: live.open || stock.open,
-          qty: live.qty || stock.qty,
+          ltp: live.ltp || "-",
+          pointChange: live.pointChange || "-",
+          percentageChange: live.percentageChange || "-",
+          high: live.high || "-",
+          low: live.low || "-",
+          open: live.open || "-",
+          qty: live.qty || "-",
           isFavorite: favorites.includes(stock.symbol),
         };
       }
       return {
         ...stock,
+        ltp: "-",
+        pointChange: "-",
+        percentageChange: "-",
+        high: "-",
+        low: "-",
+        open: "-",
+        qty: "-",
         isFavorite: favorites.includes(stock.symbol),
       };
     }).sort((a, b) => {

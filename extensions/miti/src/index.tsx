@@ -295,10 +295,6 @@ function StockListItem({
               />
               <List.Item.Detail.Metadata.Separator />
               <List.Item.Detail.Metadata.Label title="Exchange" text="NEPSE" />
-              <List.Item.Detail.Metadata.Label
-                title="Market State"
-                text="Open"
-              />
               <List.Item.Detail.Metadata.Separator />
               <List.Item.Detail.Metadata.Label
                 title="Price"
@@ -401,7 +397,6 @@ export default function Dashboard() {
 | **Bikram Sambat** | ${formatBsDate(today)} (${formatBsDateNp(today)}) |
 | **English Date** | ${formatAdDate(adDate)} |
 | **Lunar Tithi** | ${tithi.paksha} ${tithi.name} |
-| **Auspicious Time** | 7:15 AM – 9:30 AM |
 `;
 
   return (
@@ -437,16 +432,6 @@ export default function Dashboard() {
             value="market"
             icon={Icon.LineChart}
           />
-          {/* <List.Dropdown.Item
-            title="Reminders"
-            value="reminders"
-            icon={Icon.Bell}
-          /> */}
-          {/* <List.Dropdown.Item
-            title="Support"
-            value="support"
-            icon={{ source: "momo.png" }}
-          /> */}
         </List.Dropdown>
       }
     >
@@ -563,7 +548,6 @@ export default function Dashboard() {
 | **Bikram Sambat** | ${formatBsDate(today)} (${formatBsDateNp(today)}) |
 | **English Date** | ${formatAdDate(adDate)} |
 | **Lunar Tithi** | ${tithi.paksha} ${tithi.name} |
-| **Auspicious Time** | 7:15 AM – 9:30 AM |
 `}
               />
             }
@@ -863,104 +847,6 @@ export default function Dashboard() {
           )}
         </>
       )}
-
-      {/* ── Tab: Support ── */}
-      {selectedTab === "support" && (
-        <List.Section title="Support the Development">
-          <List.Item
-            title="eSewa"
-            subtitle="Digital Wallet (Nepal)"
-            icon={{ source: "esewa.png" }}
-            detail={
-              <List.Item.Detail
-                markdown={`### Support via eSewa
-Scan the QR code or send to the number below to support the development of Miti.
-
-**eSewa ID:** \`9840000000\`
-**Name:** Pratik S.
-
-Your support helps keep this project free and updated!`}
-              />
-            }
-            actions={
-              <ActionPanel>
-                <Action.CopyToClipboard
-                  title="Copy Esewa Id"
-                  content="9840000000"
-                />
-                <Action.OpenInBrowser
-                  title="Open Esewa"
-                  url="https://esewa.com.np"
-                />
-              </ActionPanel>
-            }
-          />
-          <List.Item
-            title="Khalti"
-            subtitle="Digital Wallet (Nepal)"
-            icon={{ source: "khalti.png" }}
-            detail={
-              <List.Item.Detail
-                markdown={`### Support via Khalti
-You can also support via Khalti.
-
-**Khalti ID:** \`9840000000\`
-**Name:** Pratik S.`}
-              />
-            }
-            actions={
-              <ActionPanel>
-                <Action.CopyToClipboard
-                  title="Copy Khalti Id"
-                  content="9840000000"
-                />
-              </ActionPanel>
-            }
-          />
-        </List.Section>
-      )}
-
-      {/* {selectedTab === "dashboard" && (
-        <List.Section title="More">
-          <List.Item
-            title="Buy me momo"
-            icon={{ source: "momo.png", }}
-            detail={<List.Item.Detail markdown={dashboardDetailMarkdown} />}
-            actions={
-              <ActionPanel>
-                <Action
-                  title="Go to Support Tab"
-                  icon={{ source: "coffee-icon.png", tintColor: Color.Orange }}
-                  onAction={() => {
-                    setSelectedTab("support");
-                    setSearchText("");
-                  }}
-                />
-                <ActionPanel.Section title="Navigation">
-                  <Action
-                    title="Next Month"
-                    icon={Icon.ArrowRight}
-                    shortcut={{ modifiers: ["cmd"], key: "arrowRight" }}
-                    onAction={nextMonth}
-                  />
-                  <Action
-                    title="Previous Month"
-                    icon={Icon.ArrowLeft}
-                    shortcut={{ modifiers: ["cmd"], key: "arrowLeft" }}
-                    onAction={prevMonth}
-                  />
-                  <Action
-                    title="Back to Today"
-                    icon={Icon.BullsEye}
-                    shortcut={{ modifiers: ["cmd"], key: "t" }}
-                    onAction={() => setViewDate(today)}
-                  />
-                </ActionPanel.Section>
-              </ActionPanel>
-            }
-          />
-        </List.Section>
-      )} */}
     </List>
   );
 }

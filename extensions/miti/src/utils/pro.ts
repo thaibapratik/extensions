@@ -56,7 +56,7 @@ export async function isProUser(): Promise<boolean> {
 
   // Check preferences
   try {
-    const prefs = getPreferenceValues<{ proApiKey?: string }>();
+    const prefs = getPreferenceValues<Preferences>();
     if (prefs.proApiKey) {
       return await validateProApiKey(prefs.proApiKey);
     }
