@@ -4,3 +4,4 @@ dist
 .raycast
 raycast-env.d.ts
 *.log
+scratch

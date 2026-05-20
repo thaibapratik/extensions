@@ -3681,7 +3681,12 @@ export function useNepseStocks() {
     if (!rawData) return STOCK_LIST;
 
     return STOCK_LIST.map((stock) => {
-      const live = rawData[stock.symbol];
+      const live = (
+        rawData as Record<
+          string,
+          Omit<StockData, "symbol" | "name" | "isFavorite">
+        >
+      )[stock.symbol];
       if (live) {
         return {
           ...stock,

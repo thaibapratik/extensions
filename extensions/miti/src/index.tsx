@@ -360,8 +360,7 @@ export default function Dashboard() {
   const [viewDate, setViewDate] = useState<BsDate>(today);
 
   useEffect(() => {
-    isProUser().then((result) => {
-      setIsPro(result);
+    isProUser().then(() => {
       setIsLoading(false);
     });
   }, []);
@@ -477,7 +476,7 @@ export default function Dashboard() {
                     <List.Item
                       key={`jump-day-${d}`}
                       title={`${d} ${BS_MONTH_NAMES[viewDate.month - 1]} (${WEEKDAY_NAMES_NP[dow]})`}
-                      icon={{ source: Icon.Target, tintColor: Color.Green }}
+                      icon={{ source: Icon.BullsEye, tintColor: Color.Green }}
                       detail={
                         <List.Item.Detail
                           markdown={`${generateCalendarSvg(viewDate.year, viewDate.month, today, d)}
@@ -531,7 +530,7 @@ export default function Dashboard() {
                             />
                             <Action
                               title="Back to Today"
-                              icon={Icon.Target}
+                              icon={Icon.BullsEye}
                               shortcut={{ modifiers: ["cmd"], key: "t" }}
                               onAction={() => setViewDate(today)}
                             />
@@ -603,7 +602,7 @@ export default function Dashboard() {
                   />
                   <Action
                     title="Back to Today"
-                    icon={Icon.Target}
+                    icon={Icon.BullsEye}
                     shortcut={{ modifiers: ["cmd"], key: "t" }}
                     onAction={() => setViewDate(today)}
                   />
@@ -637,7 +636,7 @@ export default function Dashboard() {
                   />
                   <Action
                     title="Back to Today"
-                    icon={Icon.Target}
+                    icon={Icon.BullsEye}
                     shortcut={{ modifiers: ["cmd"], key: "t" }}
                     onAction={() => setViewDate(today)}
                   />
@@ -672,7 +671,7 @@ export default function Dashboard() {
                   />
                   <Action
                     title="Back to Today"
-                    icon={Icon.Target}
+                    icon={Icon.BullsEye}
                     shortcut={{ modifiers: ["cmd"], key: "t" }}
                     onAction={() => setViewDate(today)}
                   />
@@ -775,7 +774,7 @@ export default function Dashboard() {
                       />
                       <Action
                         title="Back to Today"
-                        icon={Icon.Target}
+                        icon={Icon.BullsEye}
                         shortcut={{ modifiers: ["cmd"], key: "t" }}
                         onAction={() => setViewDate(today)}
                       />
@@ -820,7 +819,7 @@ export default function Dashboard() {
                       />
                       <Action
                         title="Back to Today"
-                        icon={Icon.Target}
+                        icon={Icon.BullsEye}
                         shortcut={{ modifiers: ["cmd"], key: "t" }}
                         onAction={() => setViewDate(today)}
                       />
@@ -852,7 +851,7 @@ export default function Dashboard() {
                       />
                       <Action
                         title="Back to Today"
-                        icon={Icon.Target}
+                        icon={Icon.BullsEye}
                         shortcut={{ modifiers: ["cmd"], key: "t" }}
                         onAction={() => setViewDate(today)}
                       />
@@ -952,7 +951,7 @@ You can also support via Khalti.
                   />
                   <Action
                     title="Back to Today"
-                    icon={Icon.Target}
+                    icon={Icon.BullsEye}
                     shortcut={{ modifiers: ["cmd"], key: "t" }}
                     onAction={() => setViewDate(today)}
                   />
