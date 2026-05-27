@@ -12,7 +12,7 @@ import {
 } from "@raycast/api";
 import { runAppleScript } from "@raycast/utils";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   getTodayBs,
   formatBsDate,
@@ -27,7 +27,6 @@ import {
   BsDate,
 } from "./utils/nepali-date";
 import { getCurrentTithi } from "./utils/holidays";
-import { isProUser } from "./utils/pro";
 import { generateCalendarSvg } from "./utils/calendar-renderer";
 import { useNepseStocks, StockData } from "./utils/use-nepse";
 
@@ -54,7 +53,7 @@ function ConverterForm() {
         const ad = bsToAd(y, m, d);
         setResult(formatAdDate(ad));
       }
-    } catch (e) {
+    } catch {
       setResult("Invalid date format. Use DD/MM/YYYY");
     }
   };
@@ -147,7 +146,7 @@ function ReminderForm({ initialDate }: { initialDate?: Date }) {
       const d = new Date(baseDate);
       d.setHours(hours, minutes, 0, 0);
       return d;
-    } catch (e) {
+    } catch {
       return null;
     }
   }, [timeText, baseDate]);
@@ -345,21 +344,42 @@ function StockListItem({
 
 // ─── Main Dashboard ─────────────────────────────────────────────────────────
 
+type ViewTab = "dashboard" | "market";
+
 export default function Dashboard() {
-  const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [selectedTab, setSelectedTab] = useState("dashboard");
-  const { data: stocks, toggleFavorite } = useNepseStocks();
+  const [selectedTab, setSelectedTab] = useState<ViewTab>("dashboard");
+  const {
+    data: stocks,
+    toggleFavorite,
+    isLoading: stocksLoading,
+  } = useNepseStocks();
 
   // Calendar view state
   const today = useMemo(() => getTodayBs(), []);
   const [viewDate, setViewDate] = useState<BsDate>(today);
 
-  useEffect(() => {
-    isProUser().then(() => {
-      setIsLoading(false);
-    });
-  }, []);
+  const openNepseMarket = () => {
+    setSelectedTab("market");
+    setSearchText("");
+  };
+
+  const favoriteStocks = useMemo(
+    () => stocks.filter((s) => s.isFavorite),
+    [stocks],
+  );
+
+  const marketListStocks = useMemo(() => {
+    const query = searchText.trim().toLowerCase();
+    if (query) {
+      return stocks.filter(
+        (s) =>
+          s.symbol.toLowerCase().includes(query) ||
+          s.name.toLowerCase().includes(query),
+      );
+    }
+    return stocks.filter((s) => !s.isFavorite);
+  }, [stocks, searchText]);
 
   const tithi = getCurrentTithi();
   const adDate = bsToAd(today.year, today.month, today.day);
@@ -402,33 +422,30 @@ export default function Dashboard() {
   return (
     <List
       isShowingDetail
-      isLoading={isLoading}
+      isLoading={selectedTab === "market" && stocksLoading}
       searchText={searchText}
       onSearchTextChange={setSearchText}
       searchBarPlaceholder={
         selectedTab === "market"
-          ? "Search stocks by symbol or name..."
-          : "Type a date (e.g. 15) or search events..."
+          ? "Search NEPSE stocks by symbol or name..."
+          : "Type a date (e.g. 15) to jump to a day..."
       }
-      throttle={true}
+      throttle={selectedTab === "market"}
       searchBarAccessory={
         <List.Dropdown
-          tooltip="Switch View"
+          id="miti-view"
+          tooltip="Dashboard or NEPSE Market"
           storeValue={true}
-          onChange={(newValue) => setSelectedTab(newValue)}
+          value={selectedTab}
+          onChange={(newValue) => setSelectedTab(newValue as ViewTab)}
         >
           <List.Dropdown.Item
             title="Dashboard"
             value="dashboard"
             icon={Icon.AppWindow}
           />
-          {/* <List.Dropdown.Item
-            title="Converter"
-            value="converter"
-            icon={Icon.Repeat}
-          /> */}
           <List.Dropdown.Item
-            title="Market"
+            title="NEPSE Market"
             value="market"
             icon={Icon.LineChart}
           />
@@ -524,7 +541,7 @@ export default function Dashboard() {
                       }
                     />
                   );
-                } catch (e) {
+                } catch {
                   return null;
                 }
               })}
@@ -663,187 +680,63 @@ export default function Dashboard() {
               </ActionPanel>
             }
           />
+          <List.Item
+            title="NEPSE Market"
+            subtitle="Search stocks, favorites, and live prices"
+            icon={{ source: Icon.LineChart, tintColor: Color.Blue }}
+            actions={
+              <ActionPanel>
+                <Action
+                  title="Open NEPSE Market"
+                  icon={Icon.LineChart}
+                  onAction={openNepseMarket}
+                />
+              </ActionPanel>
+            }
+          />
         </List.Section>
       )}
 
-      {/* ── Tab: Tools ── */}
-
-      {/* ── Tab: Market & Global Stock Search ── */}
-      {(selectedTab === "market" || selectedTab === "dashboard") && (
+      {selectedTab === "market" && (
         <>
-          {/* Favorites (shown when no search) */}
-          {selectedTab === "market" && !searchText && (
+          {!searchText && (
             <List.Section title="Favorites">
-              {stocks
-                .filter((s) => s.isFavorite)
-                .map((stock) => (
+              {favoriteStocks.length > 0 ? (
+                favoriteStocks.map((stock) => (
                   <StockListItem
                     key={`fav-${stock.symbol}`}
                     stock={stock}
                     toggleFavorite={toggleFavorite}
                   />
-                ))}
+                ))
+              ) : (
+                <List.Item
+                  title="No favorites yet"
+                  subtitle="Open a stock below and press ⌘ ⇧ F to favorite it"
+                  icon={Icon.Star}
+                />
+              )}
             </List.Section>
           )}
 
-          {/* All Stocks / Search Results */}
-          {(searchText || selectedTab === "market") && (
-            <List.Section title={searchText ? "Search Results" : "All Stocks"}>
-              {stocks
-                .filter((s) => {
-                  if (!searchText)
-                    return selectedTab === "market" && !s.isFavorite; // Show non-favs in Market tab when no search
-                  return (
-                    s.symbol.toLowerCase().includes(searchText.toLowerCase()) ||
-                    s.name.toLowerCase().includes(searchText.toLowerCase())
-                  );
-                })
-                .map((stock) => (
-                  <StockListItem
-                    key={`search-${stock.symbol}`}
-                    stock={stock}
-                    toggleFavorite={toggleFavorite}
-                  />
-                ))}
-            </List.Section>
-          )}
+          <List.Section
+            title={searchText.trim() ? "Search Results" : "All Stocks"}
+          >
+            {marketListStocks.map((stock) => (
+              <StockListItem
+                key={`market-${stock.symbol}`}
+                stock={stock}
+                toggleFavorite={toggleFavorite}
+              />
+            ))}
+          </List.Section>
 
-          {/* Dashboard PRO Placeholder (shown only on dashboard and when no search) */}
-          {selectedTab === "dashboard" && !searchText && (
-            <List.Section title="PRO TOOLS">
-              {/* <List.Item
-                title="NEPSE Live Tracker"
-                icon={{
-                  source: isPro ? Icon.LineChart : Icon.Lock,
-                  tintColor: isPro ? Color.Green : Color.SecondaryText,
-                }}
-                detail={
-                  <List.Item.Detail
-                    markdown={indexData ? `# NEPSE: ${indexData.index}\n**${indexData.change} (${indexData.percentageChange}) ${parseFloat(indexData.change) >= 0 ? "↗" : "↘"}**\n\n---\n\n| Market Status | ${parseFloat(indexData.change) !== 0 ? "🟢 OPEN" : "🔴 CLOSED"} |\n| :--- | :--- |\n| Last Updated | ${indexData.date} |\n\n` : `# NEPSE: Loading...\n\n---\n\n*Fetching live market data...*`}
-                  />
-                }
-                actions={
-                  <ActionPanel>
-                    {isPro ? (
-                      <Action
-                        title="Open Live Tracker"
-                        icon={Icon.LineChart}
-                        onAction={() => setSelectedTab("market")}
-                      />
-                    ) : (
-                      <Action.OpenInBrowser
-                        title="Get Pro License"
-                        icon={Icon.Unlock}
-                        url="https://pratik.dev/miti-pro"
-                      />
-                    )}
-                    <Action
-                      title="Open Preferences"
-                      icon={Icon.Gear}
-                      onAction={() => openCommandPreferences()}
-                      shortcut={{ modifiers: ["cmd", "shift"], key: "," }}
-                    />
-                    <ActionPanel.Section title="Navigation">
-                      <Action
-                        title="Next Month"
-                        icon={Icon.ArrowRight}
-                        shortcut={{ modifiers: ["cmd"], key: "arrowRight" }}
-                        onAction={nextMonth}
-                      />
-                      <Action
-                        title="Previous Month"
-                        icon={Icon.ArrowLeft}
-                        shortcut={{ modifiers: ["cmd"], key: "arrowLeft" }}
-                        onAction={prevMonth}
-                      />
-                      <Action
-                        title="Back to Today"
-                        icon={Icon.BullsEye}
-                        shortcut={{ modifiers: ["cmd"], key: "t" }}
-                        onAction={() => setViewDate(today)}
-                      />
-                    </ActionPanel.Section>
-                  </ActionPanel>
-                }
-              /> */}
-              {/* <List.Item
-                title="Market Summary"
-                icon={{
-                  source: isPro ? Icon.BarChart : Icon.Lock,
-                  tintColor: isPro ? Color.Blue : Color.SecondaryText,
-                }}
-                detail={
-                  <List.Item.Detail
-                    markdown={marketSummary ? `# Market Summary\n\n---\n\n| Attribute | Value |\n| :--- | :--- |\n| Market Cap | Rs ${(parseFloat(marketSummary.marketCap) / 1e12).toFixed(2)}T |\n| Volume | ${(parseFloat(marketSummary.volume) / 1e6).toFixed(2)}M |\n| Turnover | Rs ${(parseFloat(marketSummary.turnover) / 1e9).toFixed(2)}B |\n| Transactions | ${parseInt(marketSummary.transactions).toLocaleString()} |` : "# Market Summary\n\n---\n\n*Loading summary...*"}
-                  />
-                }
-              /> */}
-
-              {/* <List.Item
-                title="Daily Gold/Silver Rate"
-                icon={{
-                  source: isPro ? Icon.Coins : Icon.Lock,
-                  tintColor: isPro ? Color.Yellow : Color.SecondaryText,
-                }}
-                detail={<List.Item.Detail markdown={dashboardDetailMarkdown} />}
-                actions={
-                  <ActionPanel>
-                    <ActionPanel.Section title="Navigation">
-                      <Action
-                        title="Next Month"
-                        icon={Icon.ArrowRight}
-                        shortcut={{ modifiers: ["cmd"], key: "arrowRight" }}
-                        onAction={nextMonth}
-                      />
-                      <Action
-                        title="Previous Month"
-                        icon={Icon.ArrowLeft}
-                        shortcut={{ modifiers: ["cmd"], key: "arrowLeft" }}
-                        onAction={prevMonth}
-                      />
-                      <Action
-                        title="Back to Today"
-                        icon={Icon.BullsEye}
-                        shortcut={{ modifiers: ["cmd"], key: "t" }}
-                        onAction={() => setViewDate(today)}
-                      />
-                    </ActionPanel.Section>
-                  </ActionPanel>
-                }
-              /> */}
-              {/* <List.Item
-                title="Menu Bar Date Extra"
-                icon={{
-                  source: isPro ? Icon.AppWindow : Icon.Lock,
-                  tintColor: Color.SecondaryText,
-                }}
-                detail={<List.Item.Detail markdown={dashboardDetailMarkdown} />}
-                actions={
-                  <ActionPanel>
-                    <ActionPanel.Section title="Navigation">
-                      <Action
-                        title="Next Month"
-                        icon={Icon.ArrowRight}
-                        shortcut={{ modifiers: ["cmd"], key: "arrowRight" }}
-                        onAction={nextMonth}
-                      />
-                      <Action
-                        title="Previous Month"
-                        icon={Icon.ArrowLeft}
-                        shortcut={{ modifiers: ["cmd"], key: "arrowLeft" }}
-                        onAction={prevMonth}
-                      />
-                      <Action
-                        title="Back to Today"
-                        icon={Icon.BullsEye}
-                        shortcut={{ modifiers: ["cmd"], key: "t" }}
-                        onAction={() => setViewDate(today)}
-                      />
-                    </ActionPanel.Section>
-                  </ActionPanel>
-                }
-              /> */}
-            </List.Section>
+          {searchText.trim() && marketListStocks.length === 0 && (
+            <List.EmptyView
+              title="No matching stocks"
+              description="Try another symbol or company name"
+              icon={Icon.MagnifyingGlass}
+            />
           )}
         </>
       )}

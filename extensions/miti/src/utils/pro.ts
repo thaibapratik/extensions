@@ -33,8 +33,8 @@ export async function validateProApiKey(key: string): Promise<boolean> {
     const data = (await response.json()) as { success: boolean };
 
     if (data.success) {
-      // Mark as validated in cache so we don't hit the API on every single keystroke/render
-      await LocalStorage.setItem(PRO_STORAGE_KEY, "true");
+      // Cache the validated key so removal/replacement in preferences invalidates access
+      await LocalStorage.setItem(PRO_STORAGE_KEY, key.trim());
       return true;
     }
 
@@ -50,15 +50,25 @@ export async function validateProApiKey(key: string): Promise<boolean> {
  * First checks LocalStorage cache, then validates the preference key.
  */
 export async function isProUser(): Promise<boolean> {
-  // Check cache first
-  const cached = await LocalStorage.getItem<string>(PRO_STORAGE_KEY);
-  if (cached === "true") return true;
-
-  // Check preferences
   try {
     const prefs = getPreferenceValues<Preferences>();
-    if (prefs.proApiKey) {
-      return await validateProApiKey(prefs.proApiKey);
+    const currentKey = prefs.proApiKey?.trim() ?? "";
+    const cached = await LocalStorage.getItem<string>(PRO_STORAGE_KEY);
+
+    if (cached) {
+      if (!currentKey) {
+        await clearProCache();
+        return false;
+      }
+      if (cached === currentKey) {
+        return true;
+      }
+      // Legacy "true" flag or license key changed — drop stale cache
+      await clearProCache();
+    }
+
+    if (currentKey) {
+      return await validateProApiKey(currentKey);
     }
   } catch {
     // Preferences not available

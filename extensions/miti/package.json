@@ -5,6 +5,9 @@
   "description": "Premium Nepali Calendar — Bikram Sambat date conversion, today's Nepali date, Tithi, holidays, and time-elapsed calculations",
   "icon": "extension-icon.png",
   "author": "pratik_thaiba",
+  "platforms": [
+    "macOS"
+  ],
   "categories": [
     "Productivity",
     "Finance"
@@ -13,9 +16,9 @@
   "preferences": [
     {
       "name": "proApiKey",
-      "title": "Pro API Key",
-      "description": "Enter your Pro API key to unlock NEPSE Live and Gold Rate features",
-      "type": "textfield",
+      "title": "Pro License Key",
+      "description": "Optional. Buy Miti Pro, then paste your license key. See README for what is free vs paid.",
+      "type": "password",
       "required": false,
       "placeholder": "PATRO-PRO-XXXX"
     }
@@ -24,23 +27,23 @@
     {
       "name": "index",
       "title": "Miti",
-      "subtitle": "Premium Dashboard",
+      "subtitle": "Bikram Sambat Calendar",
       "description": "Premium Bikram Sambat Calendar with integrated date conversion, Tithi, and live market rates",
       "mode": "view"
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.93.3",
-    "@raycast/utils": "^1.19.1",
+    "@raycast/api": "^1.104.18",
+    "@raycast/utils": "^2.2.5",
     "cheerio": "^1.2.0"
   },
   "devDependencies": {
-    "@raycast/eslint-config": "^1.0.11",
-    "@types/node": "22.13.14",
-    "@types/react": "19.0.12",
-    "eslint": "^8.57.1",
-    "prettier": "^3.5.3",
-    "typescript": "^5.8.2"
+    "@raycast/eslint-config": "^2.1.1",
+    "@types/node": "25.9.1",
+    "@types/react": "19.2.15",
+    "eslint": "^10.4.0",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3"
   },
   "scripts": {
     "build": "ray build",
